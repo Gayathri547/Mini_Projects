@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+	<title>Grocery Store Management System</title>
+<meta name="viewport" content="user-scalable=no,width=device-width"/>
+<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+
+<script type="text/javascript" src="js/jquery.js"></script>
+
+
+</head>
+
+<body style="background-color:lightsteelblue">
+	
+
+<div class="container">
+	
+<div class="row">
+<form>
+	<fieldset>
+		<legend>Customer Name</legend>
+		<input type="text" class="form-control" name="" id="customer"><br>
+
+		<legend>Phone Number</legend>
+		<input type="number" class="form-control" id="phone" name=""><br>
+
+        <legend>Address</legend>
+		<input type="text" class="form-control" id="address" name=""><br>
+
+
+<br>
+<button type="button" id="create" class="btn btn-success">Create Table</button>	&emsp;
+
+<button type="button" id="insert" class="btn btn-success">Insert</button>	&emsp;
+
+<button type="button" id="list" class="btn btn-success">Fetch Record</button>	&emsp;
+
+<button type="button" id="remove" class="btn btn-danger">Delete Table</button>	&emsp;
+
+
+<p><small><b>NOTE:</b> Table should be created to insert the data.</small></p>
+<br>
+	</fieldset>
+</form>
+
+<hr>
+<h4>Record</h4>
+<table class="table table-bordered table-hover" id="customerlist">
+	
+</table>
+
+
+</div>
+
+</div>
+
+
+
+<script type="text/javascript">
+
+var db=openDatabase("customer_database","1.0","customer_database",65535); // customer_database is the database which is created on web itself
+
+
+$(function(){
+
+loadData(); //loading our records
+
+
+
+//CREATING TABLE STARTS HERE
+
+$("#create").click(function(){
+db.transaction(function(transaction){
+	var sql="create table Customer_table "+
+	"(id int not null primary key autoincrement,"+
+	"customer varchar(100) not null,"+
+	"phone int not null,"+
+    "address text not null)";
+	transaction.executeSql(sql,undefined,function(){
+		alert("Table is successfully created");
+	},function(){
+		alert("Table is already being created");
+	})
+});
+});
+// CREATING TABLE ENDS HERE
+
+
+
+//DELETING TABLE STARTS HERE
+$("#remove").click(function(){
+
+if(!confirm("Are you sure to delete this table?","")) return;;
+db.transaction(function(transaction){
+	var sql="DROP TABLE Customer_table";
+	transaction.executeSql(sql,undefined,function(){
+		alert("Table is deleted successfully")
+	},function(transaction,err){
+		alert(err.message);
+	})
+});
+});
+//DELETING TABLE ENDS HERE
+
+
+
+//INSERTING DATA INTO TABLE
+
+$("#insert").click(function(){
+var customer=$("#customer").val();
+var phn=$("#phone").val();
+var ads=$("#address").val();
+
+
+db.transaction(function(transaction){
+var sql="INSERT INTO Customer_table(customer,phone,address) VALUES(?,?,?)";
+transaction.executeSql(sql,[customer,phn,ads],function(){
+	alert("New customer is added successfully");
+},function(transaction,err){
+	alert(err.message);
+})
+})
+})
+//INSERTING DATA ENDS HERE
+
+
+//FETCHING OUR RECORD
+$("#list").click(function(){
+loadData();
+})
+
+
+
+//FUNCTION TO LOAD OUR RECORDS
+function loadData(){
+		$("#customerlist").children().remove();
+	db.transaction(function(transaction){
+		var sql="SELECT * FROM Customer_table ORDER BY id DESC";
+		transaction.executeSql(sql,undefined,function(transaction,result){
+if(result.rows.length){
+
+for(var i=0;i<result.rows.length;i++){
+	var row=result.rows[i];
+	var customer=row.customer;
+	var id=row.id;
+	var phone=row.phone;
+    var address=row.address;
+
+	$("#customerlist").append('<tr id="del'+id+'"><td>'+id+'</td><td>'+customer+'</td><td id="newqty'+id+'">'+phone+'</td><td id="newads'+id+'">'+address+'</td><td><a href="#" class="btn btn-danger deletecustomer" data-id="'+id+'">Delete</a>&emsp;<a href="#" class="btn btn-primary updateitem" data-id="'+id+'">Update Address</a>&emsp;<a href="items.html" class="btn btn-primary selectitem" data-id="'+id+'">Select items</a></td></tr>');
+}
+}else{
+	$("#customerlist").append('<tr><td colspan="3" align="center">No Customer Found</td></tr>');
+}
+		},function(transaction,err){
+			alert('No table found. Click on "Create Table" to create table now');
+		})
+	})
+
+
+
+
+//setTimeout was used to execute codes inside it to be loaded after records are loaded/fetched.
+
+setTimeout(function(){
+	$(".deletecustomer").click(function(){
+var sure=confirm("Are you sure to delete this customer?");
+if(sure===true){
+	var id=$(this).data("id");
+db.transaction(function(transaction){
+var sql="DELETE FROM Customer_table where id=?";
+transaction.executeSql(sql,[id],function(){
+	$("#del"+id).fadeOut();
+	alert("Customer is deleted successfully");
+},function(transaction,err){
+	alert(err.message);
+})
+});
+}
+})
+
+
+
+$(".updateitem").click(function(){
+var ads=prompt("Kindly enter new address");
+if(ads!==null){
+	var id=$(this).data("id");
+db.transaction(function(transaction){
+var sql="UPDATE Customer_table SET address=? where id=?";
+transaction.executeSql(sql,[ads,id],function(){
+	$("#newqty"+id).html(ads);
+	alert("Item is updated successfully");
+},function(transaction,err){
+	alert(err.message);
+})
+});
+}
+})
+
+
+
+	
+
+
+
+},1000);
+
+
+}
+//END OF loadData() function
+
+
+
+
+});
+
+
+</script>
+
+</body>
+</html>
