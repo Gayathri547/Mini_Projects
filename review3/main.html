@@ -73,15 +73,14 @@ loadData(); //loading our records
 
 $("#create").click(function(){
 db.transaction(function(transaction){
-	var sql="create table Customer_table "+
-	"(id int not null primary key autoincrement,"+
-	"customer varchar(100) not null,"+
-	"phone int not null,"+
-    "address text not null)";
+	
+	// var sql="create table Customer_table (id int not null primary key autoincrement, customer varchar(100) not null, phone int not null, address text not null)";
+	var sql="create table Customer_table (id PRIMARY KEY, customer varchar(100) not null, phone int not null, address text not null)";
 	transaction.executeSql(sql,undefined,function(){
 		alert("Table is successfully created");
-	},function(){
-		alert("Table is already being created");
+	},function(transaction, e){
+		console.log(e)
+		alert(e.message);
 	})
 });
 });
